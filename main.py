@@ -1,25 +1,11 @@
-import pandas as pd
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.ensemble import IsolationForest
+from sklearn.cluster import KMeans
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-"""
-Informações sobre o dataset  
-    - 1. Age: Age of the gym member.
-    - 2. Gender: Gender of the gym member (Male or Female).
-    - 3. Weight (kg): Member’s weight in kilograms.
-    - 4. Height (m): Member’s height in meters.
-    - 5. Max_BPM: Maximum heart rate (beats per minute) during workout sessions.
-    - 6. Avg_BPM: Average heart rate during workout sessions.
-    - 7. Resting_BPM: Heart rate at rest before workout.
-    - 8. Session_Duration (hours): Duration of each workout session in hours.
-    - 9. Calories_Burned: Total calories burned during each session.
-    - 10. Workout_Type: Type of workout performed (e.g., Cardio, Strength, Yoga, HIIT).
-    - 11. Fat_Percentage: Body fat percentage of the member.
-    - 12. Water_Intake (liters): Daily water intake during workouts.
-    - 13. Workout_Frequency (days/week): Number of workout sessions per week.
-    - 14. Experience_Level: Level of experience, from beginner (1) to expert (3).
-    - 15. BMI: Body Mass Index, calculated from height and weight.
-"""
+# ----------------------------- Inicialização e Preprocessamento -----------------------------
 
 # Carrega o arquivo CSV em um DataFrame
 file_path = 'data/gym_members_exercise_tracking.csv'
@@ -28,30 +14,68 @@ data = pd.read_csv(file_path)
 # Colunas contínuas
 continuous_columns = ['Age', 'Weight (kg)', 'Height (m)', 'Max_BPM', 'Avg_BPM',
                       'Resting_BPM', 'Session_Duration (hours)', 'Calories_Burned',
-                      'Fat_Percentage', 'Water_Intake (liters)', 'BMI']
+                      'Fat_Percentage', 'Water_Intake (liters)', 'BMI', 'Workout_Frequency (days/week)']
 
-# Encoding de 'Gender' e 'Workout_Type'
+# Calcula a matriz de correlação
+corr_matrix = data[continuous_columns].corr()
+
+# Plota o heatmap
+plt.figure(figsize=(10, 8))
+sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', fmt='.2f', vmin=-1, vmax=1)
+plt.title('Matriz de Correlação das Variáveis Contínuas')
+plt.show()
+
+# Encoding de variáveis categóricas
 data['Gender'] = LabelEncoder().fit_transform(data['Gender'])
-data = pd.get_dummies(data, columns=['Workout_Type'])
+data['Experience_Level'] = LabelEncoder().fit_transform(data['Experience_Level'])
+data = pd.get_dummies(data, columns=['Workout_Type'], drop_first=False)
 
 # Atualiza as colunas categóricas
-categorical_columns = [col for col in data.columns if 'Workout_Type' in col] + ['Gender']
+categorical_columns = [col for col in data.columns if 'Workout_Type' in col] + ['Gender', 'Experience_Level']
 
-# Escalonamento das variáveis contínuas
-scaler = StandardScaler()
-scaled_continuous_data = scaler.fit_transform(data[continuous_columns])
+# Escalonamento das variáveis contínuas (ANTES de detectar outliers)
+scaler_before_outlier = StandardScaler()
+scaled_continuous_data = scaler_before_outlier.fit_transform(data[continuous_columns])
 
-# Aplica o modelo de Isolation Forest
+# Aplica o modelo de Isolation Forest para detectar outliers
 isolation_forest = IsolationForest(random_state=42, contamination=0.05)
 outlier_pred = isolation_forest.fit_predict(scaled_continuous_data)
 
 # Remove os outliers
 data['Outlier'] = outlier_pred
 cleaned_data = data[data['Outlier'] == 1].drop(columns=['Outlier'])
-
-# Reseta os índices após a remoção dos outliers
 cleaned_data = cleaned_data.reset_index(drop=True)
 
-# Salva o DataSet final
-output_file_path = 'data/cleaned_dataset.csv'
-cleaned_data.to_csv(output_file_path, index=False)
+# ----------------------------- Cluster de Peso e Gordura -------------------------------------
+
+# Seleção das variáveis Peso e Gordura
+peso_gordura_columns = ['Weight (kg)', 'Fat_Percentage']
+
+# Dados SEM OUTLIERS para Peso e Gordura
+cleaned_peso_gordura_data = cleaned_data[peso_gordura_columns]
+
+# Escalonamento dos dados limpos
+scaler_after_outlier = StandardScaler()
+scaled_cleaned_data = scaler_after_outlier.fit_transform(cleaned_peso_gordura_data)
+
+# Aplica KMeans para segmentar os dados sem outliers
+kmeans_cleaned_peso_gordura = KMeans(n_clusters=3, random_state=42)
+cleaned_data['Peso_Gordura_Cluster'] = kmeans_cleaned_peso_gordura.fit_predict(scaled_cleaned_data)
+
+# Inverte o escalonamento para os valores originais
+original_cleaned_data = scaler_after_outlier.inverse_transform(scaled_cleaned_data)
+
+# Adiciona as colunas de valores originais ao DataFrame limpo
+cleaned_data['Peso_Original'] = original_cleaned_data[:, 0]
+cleaned_data['Gordura_Original'] = original_cleaned_data[:, 1]
+
+# ----------------------------- Visualização do Cluster -------------------------------------
+
+# Exibe o gráfico com os valores originais sem outliers
+plt.figure(figsize=(10, 6))
+plt.scatter(cleaned_data['Peso_Original'], cleaned_data['Gordura_Original'], c=cleaned_data['Peso_Gordura_Cluster'], cmap='viridis')
+plt.xlabel('Peso (kg)')
+plt.ylabel('Percentual de Gordura')
+plt.title('Clusters de Peso e Gordura (Sem Outliers)')
+plt.colorbar(label='Cluster')
+plt.show()
