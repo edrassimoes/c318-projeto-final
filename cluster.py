@@ -16,15 +16,6 @@ continuous_columns = ['Age', 'Weight (kg)', 'Height (m)', 'Max_BPM', 'Avg_BPM',
                       'Resting_BPM', 'Session_Duration (hours)', 'Calories_Burned',
                       'Fat_Percentage', 'Water_Intake (liters)', 'BMI', 'Workout_Frequency (days/week)']
 
-# Calcula a matriz de correlação
-corr_matrix = data[continuous_columns].corr()
-
-# Plota o heatmap
-plt.figure(figsize=(10, 8))
-sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', fmt='.2f', vmin=-1, vmax=1)
-plt.title('Matriz de Correlação das Variáveis Contínuas')
-plt.show()
-
 # Encoding de variáveis categóricas
 data['Gender'] = LabelEncoder().fit_transform(data['Gender'])
 data['Experience_Level'] = LabelEncoder().fit_transform(data['Experience_Level'])
