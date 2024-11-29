@@ -3,9 +3,8 @@ from sklearn.ensemble import IsolationForest
 from sklearn.cluster import KMeans
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 
-# ----------------------------- Inicialização e Preprocessamento -----------------------------
+# ------------------------------------ Inicialização e Preprocessamento ------------------------------------------------
 
 # Carrega o arquivo CSV em um DataFrame
 file_path = 'data/gym_members_exercise_tracking.csv'
@@ -37,7 +36,7 @@ data['Outlier'] = outlier_pred
 cleaned_data = data[data['Outlier'] == 1].drop(columns=['Outlier'])
 cleaned_data = cleaned_data.reset_index(drop=True)
 
-# ----------------------------- Cluster de Peso e Gordura -------------------------------------
+# ---------------------------------------- Cluster de Peso e Gordura ---------------------------------------------------
 
 # Seleção das variáveis Peso e Gordura
 peso_gordura_columns = ['Weight (kg)', 'Fat_Percentage']
@@ -45,22 +44,20 @@ peso_gordura_columns = ['Weight (kg)', 'Fat_Percentage']
 # Dados SEM OUTLIERS para Peso e Gordura
 cleaned_peso_gordura_data = cleaned_data[peso_gordura_columns]
 
-# Escalonamento dos dados limpos
+# Escalonamento
 scaler_after_outlier = StandardScaler()
-scaled_cleaned_data = scaler_after_outlier.fit_transform(cleaned_peso_gordura_data)
+scaled_cleaned_peso_gordura_data = scaler_after_outlier.fit_transform(cleaned_peso_gordura_data)
 
 # Aplica KMeans para segmentar os dados sem outliers
 kmeans_cleaned_peso_gordura = KMeans(n_clusters=3, random_state=42)
-cleaned_data['Peso_Gordura_Cluster'] = kmeans_cleaned_peso_gordura.fit_predict(scaled_cleaned_data)
+cleaned_data['Peso_Gordura_Cluster'] = kmeans_cleaned_peso_gordura.fit_predict(scaled_cleaned_peso_gordura_data)
 
 # Inverte o escalonamento para os valores originais
-original_cleaned_data = scaler_after_outlier.inverse_transform(scaled_cleaned_data)
+original_cleaned_peso_gordura_data = scaler_after_outlier.inverse_transform(scaled_cleaned_peso_gordura_data)
 
 # Adiciona as colunas de valores originais ao DataFrame limpo
-cleaned_data['Peso_Original'] = original_cleaned_data[:, 0]
-cleaned_data['Gordura_Original'] = original_cleaned_data[:, 1]
-
-# ----------------------------- Visualização do Cluster -------------------------------------
+cleaned_data['Peso_Original'] = original_cleaned_peso_gordura_data[:, 0]
+cleaned_data['Gordura_Original'] = original_cleaned_peso_gordura_data[:, 1]
 
 # Exibe o gráfico com os valores originais sem outliers
 plt.figure(figsize=(10, 6))
@@ -70,3 +67,5 @@ plt.ylabel('Percentual de Gordura')
 plt.title('Clusters de Peso e Gordura (Sem Outliers)')
 plt.colorbar(label='Cluster')
 plt.show()
+
+
