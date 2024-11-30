@@ -96,15 +96,10 @@ plt.show()
 ```
 
 ## 📊 Visualização
-
-O gráfico gerado exibe os clusters de peso e percentual de gordura sem a presença de outliers:
-
 - **Eixos**:
   - Eixo X: Peso (kg)
   - Eixo Y: Percentual de Gordura
 - **Cores**: Representam os diferentes clusters criados pelo algoritmo KMeans.
-
-## 🧩 Exemplo de Saída
 
 ![Gráfico de Clusters](figures/clusters_peso_gordura.png)
 
