@@ -58,19 +58,16 @@ original_cleaned_peso_gordura_data = scaler_after_outlier.inverse_transform(scal
 cleaned_data['Peso_Original'] = original_cleaned_peso_gordura_data[:, 0]
 cleaned_data['Gordura_Original'] = original_cleaned_peso_gordura_data[:, 1]
 
-# Exibe o gráfico
+# Criar o diretório 'figures' se ele não existir
+output_dir = "figures"
+os.makedirs(output_dir, exist_ok=True)
+output_path = os.path.join(output_dir, "clusters_peso_gordura.png")
+
+# Exibe e salva o gráfico
 plt.figure(figsize=(10, 6))
 plt.scatter(cleaned_data['Peso_Original'], cleaned_data['Gordura_Original'], c=cleaned_data['Peso_Gordura_Cluster'], cmap='viridis')
 plt.xlabel('Peso (kg)')
 plt.ylabel('Percentual de Gordura')
 plt.title('Clusters de Peso e Gordura (Sem Outliers)')
 plt.colorbar(label='Cluster')
-plt.show()
-
-# Criar o diretório 'figures' se ele não existir
-output_dir = "figures"
-os.makedirs(output_dir, exist_ok=True)
-
-# Salvar o gráfico no diretório
-output_path = os.path.join(output_dir, "clusters_peso_gordura.png")
 plt.savefig(output_path, dpi=300, bbox_inches='tight')
