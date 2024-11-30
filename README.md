@@ -1,3 +1,12 @@
+# Análise dos padrões fitness e do desempenho em diversos níveis de experiência na academia
+ - Edras Riberio Simões
+ - Gustavo Figueiredo Luz 
+ - Rafael Felipe Rodrigues Moreira
+
+Link para a [apresentação](https://drive.google.com/file/d/1arhng-grvicP3o1QCNssz9qxxTKKN2EC/view?usp=sharing).
+
+---
+
 ## 🔍 Análise Exploratória
 
 Antes de realizar o pré-processamento dos dados, foi realizada uma análise exploratória para observar insights importantes relacionados ao negócio. Nesta etapa, gráficos foram gerados para entender a distribuição e correlações entre as variáveis.
@@ -71,44 +80,92 @@ plt.savefig(os.path.join(output_dir, 'matriz_correlacao.png'), dpi=300, bbox_inc
 plt.close()
 ```
 
-### 📁 Exemplos de Gráficos Gerados
+### 📈 Exemplos de Gráficos Gerados
 
-#### Proporção por Gênero
-![Proporção por Gênero](figures/proporcao_genero.png)
+Abaixo estão exemplos de visualizações geradas no projeto:
 
-#### Frequência de Treinos por Semana
-![Frequência de Treinos por Semana](figures/frequencia_treinos.png)
+<div style="display: flex; flex-wrap: wrap; gap: 10px;">
 
-#### Tipos de Treinos
-![Tipos de Treinos](figures/tipos_treinos.png)
+  <img src="figures/proporcao_genero.png" alt="Proporção por Gênero" width="300">
+  <img src="figures/tipos_treinos.png" alt="Tipos de Treinos" width="300">
+  <img src="figures/frequencia_treinos.png" alt="Frequência de Treinos" width="300">
+  <img src="figures/histograma_age.png" alt="Histograma de Idade" width="300">
+  <img src="figures/histograma_calories_burned.png" alt="Histograma de Calorias Queimadas" width="300">
+  <img src="figures/histograma_fat_percentage.png" alt="Histograma de Percentual de Gordura" width="300">
+  <img src="figures/histograma_session_duration_hours.png" alt="Histograma de Duração da Sessão" width="300">
+  <img src="figures/matriz_correlacao.png" alt="Matriz de Correlação" width="300">
 
-#### Matriz de Correlação
-![Matriz de Correlação](figures/matriz_correlacao.png)
+</div>
 
 ---
 
-# Clustering de Peso e Gordura Corporal
+## 🏋️ Modelagem de Previsão de Calorias Queimadas
 
-Este projeto aplica técnicas de **Machine Learning** para realizar **detecção de outliers** e **clustering** de dados relacionados a peso e percentual de gordura corporal. O objetivo é identificar padrões nos dados, agrupando-os em clusters e removendo anomalias para obter resultados mais precisos.
+A modelagem foi realizada em dois cenários:
+1. **Sem dados de batimentos cardíacos**: Simula um cenário onde informações precisas de batimentos não estão disponíveis.
+2. **Com dados de batimentos cardíacos**: Utiliza todas as informações disponíveis para melhorar a precisão.
 
-## 📋 Funcionalidades
+#### Cenário 1: Modelo Sem Dados de Batimentos Cardíacos
+Seleciona variáveis que não dependem de medições avançadas:
+```python
+df_calories = df.drop(columns=["Max_BPM", "Resting_BPM", "Avg_BPM"])
+df_train_calories, df_test_calories = train_test_split(df_calories, test_size=0.2, random_state=42)
 
-1. **Encoding de variáveis categóricas** para facilitar o uso de algoritmos de machine learning.
-2. **Detecção e remoção de outliers** utilizando o modelo **Isolation Forest**.
-3. **Normalização e escalonamento dos dados** com o **StandardScaler**.
-4. **Clustering** dos dados de peso e gordura corporal com o algoritmo **KMeans**.
-5. **Visualização** dos clusters em um gráfico.
+df_calories = {
+    "x_train": df_train_calories.drop(columns=["Calories_Burned"]),
+    "y_train": df_train_calories["Calories_Burned"],
+    "x_test": df_test_calories.drop(columns=["Calories_Burned"]),
+    "y_test": df_test_calories["Calories_Burned"]
+}
 
-## 🚀 Tecnologias Utilizadas
+model = linear_model.LinearRegression()
+model.fit(df_calories["x_train"], df_calories["y_train"])
+y_predict_calories = model.predict(df_calories["x_test"])
 
-- **Python**
-- **Bibliotecas**:
-  - `pandas` para manipulação de dados.
-  - `numpy` para operações numéricas.
-  - `matplotlib` para visualização.
-  - `scikit-learn` para modelagem (Isolation Forest, KMeans e escalonamento).
+erro_q_medio = mean_squared_error(df_calories["y_test"], y_predict_calories)
+coef_det = r2_score(df_calories["y_test"], y_predict_calories)
+print(f"Erro quadrático médio: {round(erro_q_medio, 2)}")
+print(f"Erro médio: +-{round(math.sqrt(erro_q_medio), 2)} Kcal")
+print(f"Coeficiente de determinação: {round(coef_det, 2)}")
+```
 
-## 📂 Estrutura do Código e Trechos Relevantes
+#### Cenário 2: Modelo Com Todos os Dados
+Utiliza o dataset completo para maior precisão:
+```python
+df_train_calories_sim, df_test_calories_sim = train_test_split(df, test_size=0.2, random_state=42)
+df_calories_sim = {
+    "x_train": df_train_calories_sim.drop(columns=["Calories_Burned"]),
+    "y_train": df_train_calories_sim["Calories_Burned"],
+    "x_test": df_test_calories_sim.drop(columns=["Calories_Burned"]),
+    "y_test": df_test_calories_sim["Calories_Burned"]
+}
+
+model.fit(df_calories_sim["x_train"], df_calories_sim["y_train"])
+y_predict_calories = model.predict(df_calories_sim["x_test"])
+
+erro_q_medio_sim = mean_squared_error(df_calories_sim["y_test"], y_predict_calories)
+coef_det_sim = r2_score(df_calories_sim["y_test"], y_predict_calories)
+print(f"Erro quadrático médio: {round(erro_q_medio_sim, 2)}")
+print(f"Coeficiente de determinação: {round(coef_det_sim, 2)}")
+```
+
+---
+
+### **Resultados e Comparações**
+
+Os resultados dos dois cenários são comparados para avaliar o impacto da presença de dados de batimentos cardíacos na precisão do modelo:
+
+| Métrica                  | Sem Batimentos Cardíacos | Com Batimentos Cardíacos |
+|--------------------------|--------------------------|--------------------------|
+| Erro Quadrático Médio    | `round(erro_q_medio, 2)` | `round(erro_q_medio_sim, 2)` |
+| Erro Médio               | `round(math.sqrt(erro_q_medio), 2)` | `round(math.sqrt(erro_q_medio_sim), 2)` |
+| Coeficiente de Determinação | `round(coef_det, 2)` | `round(coef_det_sim, 2)` |
+
+Com isso, conclui-se que a adição de dados de batimentos cardíacos melhora significativamente a precisão do modelo.
+
+---
+
+## 📊 Clustering de Peso e Gordura Corporal
 
 ### 1. **Pré-processamento: Encoding de Variáveis**
 
