@@ -1,6 +1,11 @@
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+
+# Configurações para salvar os gráficos
+output_dir = "figures"
+os.makedirs(output_dir, exist_ok=True)
 
 # Carrega o dataset
 file_path = 'data/gym_members_exercise_tracking.csv'  # Altere se necessário
@@ -11,21 +16,24 @@ gender_counts = data['Gender'].value_counts()
 gender_counts.plot(kind='pie', autopct='%1.1f%%', startangle=90, colors=['#ff9999', '#66b3ff'])
 plt.title('Distribuição por Gênero')
 plt.ylabel('')  # Remove o rótulo do eixo Y
-plt.show()
+plt.savefig(os.path.join(output_dir, 'proporcao_genero.png'), dpi=300, bbox_inches='tight')
+plt.close()
 
 # Gráfico 2: Frequência de Treinos por Semana (pizza)
 frequency_counts = data['Workout_Frequency (days/week)'].value_counts()
 frequency_counts.plot(kind='pie', autopct='%1.1f%%', startangle=90, colors=sns.color_palette('pastel'))
 plt.title('Frequência de Treinos por Semana')
 plt.ylabel('')
-plt.show()
+plt.savefig(os.path.join(output_dir, 'frequencia_treinos.png'), dpi=300, bbox_inches='tight')
+plt.close()
 
 # Gráfico 3: Tipos de Treinos (pizza)
 workout_type_counts = data['Workout_Type'].value_counts()
 workout_type_counts.plot(kind='pie', autopct='%1.1f%%', startangle=90, colors=sns.color_palette('pastel'))
 plt.title('Tipos de Treinos')
 plt.ylabel('')
-plt.show()
+plt.savefig(os.path.join(output_dir, 'tipos_treinos.png'), dpi=300, bbox_inches='tight')
+plt.close()
 
 # Gráfico 4: Histogramas (Idade, Fat_Percentage, Session_Duration, Calories_Burned)
 columns_to_plot = ['Age', 'Fat_Percentage', 'Session_Duration (hours)', 'Calories_Burned']
@@ -37,7 +45,9 @@ for column, color in zip(columns_to_plot, colors):
     plt.xlabel(column.replace('_', ' '))
     plt.ylabel('Frequência')
     plt.tight_layout()
-    plt.show()
+    file_name = f'histograma_{column.lower().replace(" ", "_").replace("(", "").replace(")", "")}.png'
+    plt.savefig(os.path.join(output_dir, file_name), dpi=300, bbox_inches='tight')
+    plt.close()
 
 # Colunas contínuas
 continuous_columns = ['Age', 'Weight (kg)', 'Height (m)', 'Max_BPM', 'Avg_BPM',
@@ -53,4 +63,5 @@ sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', fmt='.2f', vmin=-1, vmax=1
 plt.title('Matriz de Correlação das Variáveis Contínuas', fontsize=16)
 plt.tight_layout()
 plt.xticks(rotation=45, ha='right')
-plt.show()
+plt.savefig(os.path.join(output_dir, 'matriz_correlacao.png'), dpi=300, bbox_inches='tight')
+plt.close()
