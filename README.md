@@ -95,11 +95,5 @@ plt.colorbar(label='Cluster')
 plt.show()
 ```
 
-## 📊 Visualização
-- **Eixos**:
-  - Eixo X: Peso (kg)
-  - Eixo Y: Percentual de Gordura
-- **Cores**: Representam os diferentes clusters criados pelo algoritmo KMeans.
-
 ![Gráfico de Clusters](figures/clusters_peso_gordura.png)
 
