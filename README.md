@@ -5,6 +5,8 @@
 
 Link para a [apresentação](https://drive.google.com/file/d/1arhng-grvicP3o1QCNssz9qxxTKKN2EC/view?usp=sharing).
 
+Links para o [dataset](https://www.kaggle.com/datasets/valakhorasani/gym-members-exercise-dataset).
+
 ---
 
 ## 🔍 Análise Exploratória
